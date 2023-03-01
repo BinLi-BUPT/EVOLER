@@ -1,4 +1,5 @@
-![zenodo 7688653](https://user-images.githubusercontent.com/117343484/222163377-c77cf8af-4a99-44fa-b306-0955aa8d61db.svg)
+![zenodo 7688653](https://user-images.githubusercontent.com/117343484/222166642-84ee6d03-cce2-4d46-9849-469748d973a7.svg)
+
 
 This file provides an instruction for the operation software to reproduce all the figures/results of our work “Machine Learning-enabled
 Globally Guaranteed Evolutionary Computation”.
