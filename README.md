@@ -1,6 +1,7 @@
 ![zenodo 7688653](https://user-images.githubusercontent.com/117343484/222163377-c77cf8af-4a99-44fa-b306-0955aa8d61db.svg)
 
-This file provides an instruction for the operation software to reproduce all the figures/results in the manuscript.
+This file provides an instruction for the operation software to reproduce all the figures/results of our work “Machine Learning-enabled
+Globally Guaranteed Evolutionary Computation”.
 1.	Operation software of evolutionary computing 
 1)	Software:  MATLAB R2019a  
 The source code has been tested on MATLAB R2019a and it could work normally. Note that, however, the other MATLAB versions may have unexpected problems, probably due to different specifications or versions of system functions. If the operational software (MATLAB R2019a) has been correctly installed, it requires no further action.  
