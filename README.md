@@ -1,4 +1,4 @@
-![zenodo 7688653](https://user-images.githubusercontent.com/117343484/222166642-84ee6d03-cce2-4d46-9849-469748d973a7.svg)
+10.5281/zenodo.7688653
 
 
 This file provides an instruction for the operation software to reproduce all the figures/results of our work “Machine Learning-enabled
