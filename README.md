@@ -1,4 +1,4 @@
-<a href="https://doi.org/10.5281/zenodo.7700520"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.7700520.svg" alt="DOI"></a>
+<a href="https://doi.org/10.5281/zenodo.7701057"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.7701057.svg" alt="DOI"></a>
 
 
 This file provides an instruction for the operation software to reproduce all the figures/results of our work “Machine Learning-enabled
