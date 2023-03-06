@@ -1,0 +1,102 @@
+# Copyright 2022, All Rights Reserved
+# Code by Bin Li & Ziping Wei
+c1=1.9;                     			#learning factor
+c2=linspace(1.9,2.0,101);   			#learning factor
+gen=30;                     			#The number of iterations.
+sizepop=50;                 			#The number of particles.
+tar=readdata('data_double_peak.txt');                    #The targeted response 
+result=matrix(1,gen);
+
+# [30,60,75,75,150] is the center of reconstructed attention subspace by our EVOLER method, which is saved in 'index_2_est'
+popcen=[30,60,75,75,150];  
+popmin=popcen-15;         
+popmax=popcen+15; 
+M=5;              
+Vmax=linspace(10,1,100);   
+Vmin=-linspace(10,1,100);
+w=0;
+V=matrix(sizepop,M);
+trans_result=matrix(sizepop,201);
+pop=matrix(sizepop,M);
+pop(1,:)=[30,60,75,75,150];
+for(ii=2:sizepop){     
+    pop(ii,:)=round([30,60,75,75,150]-20+40*randmatrix(1,M));
+    V(ii,:)=-20+40*randmatrix(1,M);
+}
+fitness=matrix(1,sizepop);
+for(ii=1:sizepop){
+    ?ii;
+    del('d.txt');
+    d=[pop(ii,1:M),pop(ii,M-1:-1:1)];    
+    d=[d,d];
+    write('d.txt',num2str(d));
+    switchtolayout;    
+    select('structure group');    
+    runsetup;
+    select('mesh');
+    set('x min',-(sum(d)*1e-9));
+    run;
+    temp=getresult('transmission','T');
+    trans_result(ii,1:201)=-pinch(temp.T);
+    fitness(1,ii)=sum(abs(tar-trans_result(ii,1:201)),2);
+}
+matlabsave('pso-result0',pop,trans_result);
+matlabput(fitness);
+matlab("
+    [bestf,besti]=min(fitness);
+");
+matlabget(bestf,besti);
+pbest=pop;
+gbest=pop(besti,:);
+fitnesspbest=fitness;
+fitnessgbest=bestf;
+
+for(ii=1:gen){
+    for(jj=1:sizepop){
+        ?ii;
+        ?jj;
+        V(jj,:)=0.3*V(jj,:)+c1*rand*(pbest(jj,:)-pop(jj,:))+c2(ii)*rand*(gbest-pop(jj,:));        
+        for(kk=1:M){        
+            if(V(jj,kk)>Vmax(ii)){
+                V(jj,kk)=Vmax(ii);
+            }
+            if(V(jj,kk)<Vmin(ii)){
+                V(jj,kk)=Vmin(ii);
+            }
+        }
+        pop(jj,:)=round(pop(jj,:)+V(jj,:));
+        for(kk=1:M){
+            if(pop(jj,kk)>popmax(kk)){
+                pop(jj,kk)=popmax(kk);
+            }
+            if(pop(jj,kk)<popmin(kk)){
+                pop(jj,kk)=popmin(kk);
+            }
+        }
+        del('d.txt');
+        d=[pop(jj,1:M),pop(jj,M-1:-1:1)];    
+        d=[d,d];        
+        write('d.txt',num2str(d));
+        switchtolayout;    
+        select('structure group');    
+        runsetup;
+        select('mesh');
+        set('x min',-(sum(d)*1e-9));
+        run;
+        temp=getresult('transmission','T');
+        trans_result(jj,1:201)=-pinch(temp.T);
+        fitness(1,jj)=sum(abs(tar-trans_result(jj,1:201)),2);
+        if(fitness(jj)<fitnesspbest(jj)){
+            pbest(jj,:)=pop(jj,:);
+            fitnesspbest(jj)=fitness(jj);
+        }
+        if(fitness(jj)<fitnessgbest){
+            gbest=pop(jj,:);
+            fitnessgbest=fitness(jj);
+        }
+    }
+    result(ii)=fitnessgbest;
+    matlabsave('pso-result'+num2str(ii),pbest,gbest,V,fitnessgbest,ii,fitnesspbest,trans_result,pop,result);
+}
+matlabsave('result',result,gbest);
+    

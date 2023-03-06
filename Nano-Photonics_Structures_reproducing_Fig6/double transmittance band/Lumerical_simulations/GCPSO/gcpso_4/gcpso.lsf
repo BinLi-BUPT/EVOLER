@@ -1,0 +1,138 @@
+#NPSO
+gen=200;             #The number of iterations.
+sizepop=50;         #The number of particles in the swarm.
+c1=1.49;         
+c2=1.49;
+w=0.72;
+tar=readdata('data_double_peak.txt'); 
+popcen=[80,80,80,80,80];
+popmin=[15,15,15,15,15];         
+popmax=[150,150,150,150,150]; 
+M=5;                  
+Vmax=0.2*(popmax(1)-popmin(1));
+Vmin=-1*Vmax;
+result=matrix(1,gen);
+speed=matrix(sizepop,M);
+trans_result=matrix(sizepop,201);
+pop=matrix(sizepop,M);
+#Initialize the position and velocity of the particles
+for(ii=1:sizepop){
+    pop(ii,:)=popcen+round(70*(1-2*randmatrix(1,M)));	
+    speed(ii,:)=Vmax*(1-2*randmatrix(1,M));			
+}
+fitness=matrix(1,sizepop);
+for(ii=1:sizepop){
+    ?ii;
+    del('d.txt');
+    d=[pop(ii,1:M),pop(ii,M-1:-1:1)];
+    d=[d,d];    
+    write('d.txt',num2str(d));
+    switchtolayout;    
+    select('structure group');    
+    runsetup;
+    select('mesh');
+    set('x min',-(sum(d)*1e-9));
+    run;
+    temp=getresult('transmission','T');
+    trans_result(ii,:)=-pinch(temp.T);
+    fitness(1,ii)=sum(abs(tar-trans_result(ii,1:201)),2);
+}
+matlabput(fitness);
+matlab("
+    [bestf,besti]=min(fitness);
+");
+matlabget(bestf,besti);
+pbest=pop;
+gbest=pop(besti,:);
+fitnesspbest=fitness;
+fitnessgbest=bestf;
+
+ft = 1; 
+success = 15; 
+failure = 5;
+suNumber = 0; 
+faNumber = 0;
+nMin = besti;
+xBest = pop;
+yBest = gbest;
+xFit = fitnesspbest;
+yFit = fitnessgbest;
+
+for(ii=1:gen){
+    for(jj=1:sizepop){
+        ?ii;
+        ?jj;
+        del('d.txt');
+        d=[pop(jj,1:M),pop(jj,M-1:-1:1)];
+        d=[d,d];    
+        write('d.txt',num2str(d));
+        switchtolayout;    
+        select('structure group');    
+        runsetup;
+        select('mesh');
+        set('x min',-(sum(d)*1e-9));
+        run;
+        temp=getresult('transmission','T');
+        trans_result(jj,:)=-pinch(temp.T);
+        xFitness = sum(abs(tar-trans_result(jj,1:201)),2);
+        
+        if (xFitness < xFit(jj)){
+            xFit(jj) = xFitness;
+            xBest(jj,:) = pop(jj,:);
+        }  
+        }
+        matlabput(xFit);
+        matlab("
+             [bestf,besti]=min(xFit);
+             ");       
+        matlabget(bestf,besti);
+        if (bestf < yFit){
+               yFit = bestf;
+               nMin = besti;               
+               yBest = xBest(nMin,:);
+               suNumber = suNumber + 1;
+               faNumber = 0;}
+        if (bestf > yFit){
+            faNumber = faNumber + 1;
+            suNumber = 0;
+        }
+        
+        matlabput(yBest);
+        matlab("
+             de1 = repmat(yBest,50,1);
+             ");       
+        matlabget(de1);
+        speed = (speed*w + c1*rand * (xBest - pop) + c2 * rand*(de1 - pop)); 
+        
+        for(jj=1:sizepop){
+        for(kk=1:M){        
+            if(speed(jj,kk)>Vmax){
+                speed(jj,kk)=Vmax;
+            }
+            if(speed(jj,kk)<Vmin){
+                speed(jj,kk)=Vmin;
+            }
+        }
+        }
+        speedKeep = speed(nMin,:);
+        pop = round(pop + speed);          
+        if (suNumber > success){
+            ft = 2*ft;
+            failure = failure + 1;}  
+        if(faNumber > failure){
+            ft = 0.5 * ft;
+            success = success + 1;}
+        pop(nMin,:) = round(yBest(1,:) + w*speedKeep + ft*(1-2*rand(1,M)));  
+        for(kk=1:M){
+            if(pop(jj,kk)>popmax(kk)){
+                pop(jj,kk)=popmax(kk);
+            }
+            if(pop(jj,kk)<popmin(kk)){
+                pop(jj,kk)=popmin(kk);
+            }
+        }
+    result(ii)=yFit;		
+    matlabsave('pso-result'+num2str(ii),xBest,yBest,speed,yFit,ii,xFit,trans_result,pop,result);
+}
+matlabsave('result',result,yBest);
+    

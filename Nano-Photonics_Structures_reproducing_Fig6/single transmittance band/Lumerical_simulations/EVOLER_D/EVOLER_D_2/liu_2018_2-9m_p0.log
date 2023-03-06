@@ -1,0 +1,71 @@
+FDTD Solutions Version 8.19.1584 (Windows 64bit)
+ expires (month/day/year): 12/31/2025
+using config file: C:/Users/ASUS/AppData/Roaming/Lumerical/FDTD Solutions.ini
+license host: <a href=http://localhost:8095>localhost:8095</a>
+current time: Fri Jan 13 23:03:57 2023
+Running on host: DESKTOP-HEEMT38
+All processes are communicating and ready to proceed to simulation...
+Running fsp file: E:\Lumerical\FDTD\bin\fdtd-engine-msmpi.exe -t 1 -remote C:/Users/ASUS/Desktop/single evoler_d/Downhill_EVOLER _2/liu_2018_2-9m.fsp
+number of processors is 1
+processors are distributed as: 1x1x1
+Running 2D Simulation
+Starting meshing
+Simulation size in gridpoints: 3066 x 3 x 1
+Refined 0 mesh cells (0%)
+Completed meshing!
+Meshing complete in 0.03125 seconds of CPU time
+Starting meshing
+Simulation size in gridpoints: 3066 x 3 x 1
+Refined 0 mesh cells (0%)
+Completed meshing!
+Meshing complete in 0.03125 seconds of CPU time
+Starting meshing
+Simulation size in gridpoints: 3066 x 3 x 1
+Refined 0 mesh cells (0%)
+Completed meshing!
+Meshing complete in 0.03125 seconds of CPU time
+0 0
+0 0
+finished material properties
+Selected kernel with optimization level: 2 and split-field propagation direction: 0
+Starting meshing
+Simulation size in gridpoints: 3066 x 3 x 1
+Refined 0 mesh cells (0%)
+Completed meshing!
+Meshing complete in 0.03125 seconds of CPU time
+Starting meshing
+Simulation size in gridpoints: 3066 x 3 x 1
+Refined 0 mesh cells (0%)
+Completed meshing!
+Meshing complete in 0.03125 seconds of CPU time
+Starting meshing
+Simulation size in gridpoints: 3066 x 3 x 1
+Refined 0 mesh cells (0%)
+Completed meshing!
+Meshing complete in 0.03125 seconds of CPU time
+0 0
+Selected kernel with optimization level: 2 and split-field propagation direction: 0
+-----------------------------------------
+Beginning initialization of 2D FDTD Simulation
+  Including TE Simulation
+Starting to add sources to simulation
+
+Adding Gaussian source propagating in X
+Starting to add boundary conditions to simulation
+Adding PML BC
+Adding PML BC
+Adding periodic BC
+Adding periodic BC
+Starting to add monitors to Simulation
+Adding analysis monitor
+Adding frequency monitor
+Finished initialization of 2D Simulation
+-----------------------------------------
+All processes are communicating and ready to proceed to simulation...
+Starting 50785 total iterations
+0% complete. Max time remaining: 6 secs. Auto Shutoff: 1
+2% complete. Max time remaining: 7 secs. Auto Shutoff: 1
+4% complete. Max time remaining: 6 secs. Auto Shutoff: 1
+8% complete. Max time remaining: 8 secs. Auto Shutoff: 1
+16% complete. Max time remaining: 7 secs. Auto Shutoff: 0.2313
+32% complete. Max time remaining: 5 secs. Auto Shutoff: 0.00180185
