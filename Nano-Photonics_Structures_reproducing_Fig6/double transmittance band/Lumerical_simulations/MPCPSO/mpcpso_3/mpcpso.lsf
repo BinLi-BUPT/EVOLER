@@ -1,0 +1,363 @@
+#mpcpco
+#7层镜像结构的pso优化
+maxgen=200;             #迭代次数
+sizepop=50;         #种群规模
+tar=readdata('data_double_peak.txt'); #目标函数值
+popcen=[80,80,80,80,80];
+popmin=[15,15,15,15,15];         
+popmax=[150,150,150,150,150]; 
+vmax=0.2*(popmax-popmin);
+vmin=-1*vmax;
+D=5;
+t=0.5;
+MAXT=5;
+F=0.5;
+N1=t*sizepop;
+N2=sizepop-N1;
+cc=1.49445;
+w=0.729;
+tournamentsize=5;
+
+pop=matrix(sizepop,D);
+v=matrix(sizepop,D);
+fitness=matrix(1,sizepop);
+pbest=matrix(sizepop,D);
+fitnesspbest=matrix(1,sizepop);
+gbest=matrix(1,D);
+mbest=matrix(1,D);
+trans_result=matrix(sizepop,201);
+result=matrix(1,maxgen);
+sortindex=matrix(1,sizepop);
+EP=matrix(1,N1);
+GP=matrix(1,N2);
+
+#初始化
+for (ii=1:sizepop)
+{
+    pop(ii,:)=popcen+round(70*(1-2*randmatrix(1,D)));	#种群初始化
+    v(ii,:)=vmax*(1-2*randmatrix(1,D));
+}
+for(ii=1:sizepop)
+{
+    ?ii;    
+    del('d.txt');
+    d=[pop(ii,1:D),pop(ii,D-1:-1:1)];
+    d=[d,d];    
+    write('d.txt',num2str(d));
+    switchtolayout;    
+    select('structure group');    
+    runsetup;
+    select('mesh');
+    set('x min',-(sum(d)*1e-9));
+    run;
+    temp=getresult('transmission','T');
+    trans_result(ii,:)=-pinch(temp.T);
+    fitness(1,ii)=sum(abs(tar-trans_result(ii,1:201)),2);
+}
+pbest=pop;
+fitnesspbest=fitness;
+matlabput(fitness);
+matlab("
+    [bestf,besti]=min(fitness);
+");
+matlabget(bestf,besti);
+fitnessgbest=bestf;
+gbest=pop(besti,:);
+me1=sum(fitnesspbest);
+T=0;
+for (ii=1:maxgen)
+{
+    ?ii;
+    is_des=0;
+    
+    #粒子按照fitness升序排列,并划分GP和EP
+    matlabput(fitnesspbest);
+    matlab("
+    [sortfitness,sortind]=sort(fitnesspbest,2);    
+    ");
+    matlabget(sortind);
+    sortindex=sortind;
+    matlabput(sortindex,N1);
+    matlab("
+    EP1=sortindex(1:N1);    
+    ");
+    matlabget(EP1);
+    EP=EP1;
+    matlabput(sortindex,N1);
+    matlab("
+    GP1=sortindex(N1+1:end);    
+    ");
+    matlabget(GP1);
+    GP=GP1;
+    
+    #DSMLS
+    segmentnum=ceil((ii/maxgen)*D);
+    ds=ceil(D/segmentnum);
+    y=floor(D/segmentnum);
+    #确定速度更新公式参数phi
+    sumfitness=0;
+    for(jj=1:N2)
+    {
+        sumfitness=sumfitness+fitnesspbest(GP(jj));
+    }
+    phi=-1*me1*sumfitness/N2;
+    phi=1/((1+exp(phi))^ii);#phi与迭代次数有关
+    #更新每个粒子速度和位置
+    for(jj=1:N2)
+    {
+        index=GP(jj);
+        #确定索引为index的粒子的学习对象和学习方向
+        for(ddd=1:ds:D)
+        {
+            sum1=0;
+            sum2=zeros(1,D);
+            pl=zeros(1,D);
+            for(iii=1:tournamentsize)
+            {
+                matlabput(N1);
+                matlab("
+                rr1=randi(N1);            
+                ");
+                matlabget(rr1);
+                rr11=rr1;
+                ?rr1;
+                tournamentindex=EP(rr11);
+                sum1=sum1+pbest(tournamentindex);
+                sum2=sum2+fitnesspbest(tournamentsize)*pbest(tournamentindex,:);
+            }
+            pl=sum2/(sum1*tournamentsize);
+            r111=rand;
+            r222=rand;
+            if(ddd+ds-1>D)
+            {
+                for(dd=(D-y+1):D)
+                {
+                    v(index,dd)=w*v(index,dd)+cc*r111*(pl(dd)-pop(index,dd))+phi*r222*(gbest(dd)-pop(index,dd));
+                    if(v(index,dd)<vmin(dd))
+                    {
+                        v(index,dd)=vmin(dd);
+                    }
+                    if(v(index,dd)>vmax(dd))
+                    {
+                        v(index,dd)=vmax(dd);
+                    }
+                    pop(index,dd)=round(pop(index,dd)+v(index,dd));
+                    if (pop(index,dd)<popmin(dd))
+                    {
+                        pop(index,dd)=popmin(dd);
+                    }
+                    if(pop(index,dd)>popmax(dd))
+                    {
+                        pop(index,dd)=popmax(dd);
+                    }
+                }
+            }
+            else
+            {
+                for(dd=ddd:(ddd+ds-1))
+                {
+                   v(index,dd)=w*v(index,dd)+cc*r111*(pl(dd)-pop(index,dd))+phi*r222*(gbest(dd)-pop(index,dd));
+                    if(v(index,dd)<vmin(dd))
+                    {
+                        v(index,dd)=vmin(dd);
+                    }
+                    if(v(index,dd)>vmax(dd))
+                    {
+                        v(index,dd)=vmax(dd);
+                    }
+                    pop(index,dd)=round(pop(index,dd)+v(index,dd));
+                    if (pop(index,dd)<popmin(dd))
+                    {
+                        pop(index,dd)=popmin(dd);
+                    }
+                    if(pop(index,dd)>popmax(dd))
+                    {
+                        pop(index,dd)=popmax(dd);
+                    } 
+                }
+            }
+        }
+        #更新fitness
+        del('d.txt');
+        d=[pop(index,1:D),pop(index,D-1:-1:1)];
+        d=[d,d];    
+        write('d.txt',num2str(d));
+        switchtolayout;    
+        select('structure group');    
+        runsetup;
+        select('mesh');
+        set('x min',-(sum(d)*1e-9));
+        run;
+        temp=getresult('transmission','T');
+        trans_result(index,:)=-pinch(temp.T);
+        fitness(1,index)=sum(abs(tar-trans_result(index,1:201)),2);
+        if(fitness(1,index)<fitnesspbest(1,index))
+        {
+            fitnesspbest(index)=fitness(index);
+            pbest(index,:)=pop(index,:);
+        }
+        if(fitnesspbest(index)<fitnessgbest)
+        {
+            fitnessgbest=fitnesspbest(index);
+            gbest=pbest(index,:);
+            is_des=1;
+            T=0;
+        }
+    }
+    
+    #按照MDCLS准则进行更新EP群体
+    if (T<MAXT)#没有进入局部最优
+    {
+        sumfitness=0;
+        for(jj=1:N1)
+        {
+            index=EP(jj);
+            sumfitness=sumfitness+fitnesspbest(EP(jj));
+        }
+        phi=-1*me1*sumfitness/N1;
+        phi=1/((1+exp(phi))^ii);#phi与迭代次数有关
+        #确定每个粒子相应维度之和
+        sumpop=zeros(1,D);
+        for(jj=1:N1)
+        {
+            index=EP(jj);
+            sumpop=sumpop+pbest(jj,:);
+        }
+        for (jj=1:N1)
+        {
+            index=EP(jj);
+            sumD=sum(pbest(index,:));
+            #逐维度确定mbest(index,dd),进而更新速度v(index,dd),位置pop(index,dd);
+            for(dd=1:D)
+            {
+                lambda=1/(exp(sumD/D-pbest(index,dd))+1);
+                r=rand;
+                mbest(dd)=lambda*r/D*sumD+(1-lambda)*(1-r)*sumpop(dd);
+                v(index,dd)=w*v(index,dd)+cc*rand*(mbest(dd)-pop(index,dd));
+                if(v(index,dd)<vmin(dd))
+                {
+                    v(index,dd)=vmin(dd);
+                }
+                if(v(index,dd)>vmax(dd))
+                {
+                    v(index,dd)=vmax(dd);
+                }
+                pop(index,dd)=round(phi*pop(index,dd)+v(index,dd));
+                if(pop(index,dd)<popmin(dd))
+                {
+                    pop(index,dd)=popmin(dd);
+                }
+                if(pop(index,dd)>popmax(dd))
+                {
+                    pop(index,dd)=popmax(dd);
+                }
+            }
+           #更新fitness
+            del('d.txt');
+            d=[pop(index,1:D),pop(index,D-1:-1:1)];
+            d=[d,d];    
+            write('d.txt',num2str(d));
+            switchtolayout;    
+            select('structure group');    
+            runsetup;
+            select('mesh');
+            set('x min',-(sum(d)*1e-9));
+            run;
+            temp=getresult('transmission','T');
+            trans_result(index,:)=-pinch(temp.T);
+            fitness(1,index)=sum(abs(tar-trans_result(index,1:201)),2);
+            if(fitness(1,index)<fitnesspbest(1,index))
+            {
+                fitnesspbest(index)=fitness(index);
+                pbest(index,:)=pop(index,:);
+            }
+            if(fitnesspbest(index)<fitnessgbest)
+            {
+                fitnessgbest=fitnesspbest(index);
+                gbest=pbest(index,:);
+                is_des=1;
+                T=0;
+            }  
+        }
+    }
+    else
+    {
+        T=0;
+        for(jj=1:N1)
+        {
+            index=EP(jj);
+            matlabput(sizepop);
+            matlab("
+            ind1=randi(sizepop);            
+            ");
+            matlabget(ind1);
+            index1=ind1;
+            matlabput(sizepop);
+            matlab("
+            ind2=randi(sizepop);            
+            ");
+            matlabget(ind2);
+            index2=ind2;
+            for(kk=1:5)
+            {
+                if((index~=index1)and (index~=index2) and (index1~=index2))
+                {
+                    break;
+                }
+                matlabput(sizepop);
+                matlab("
+                ind1=randi(sizepop);            
+                ");
+                matlabget(ind1);
+                index1=ind1;
+                matlabput(sizepop);
+                matlab("
+                ind2=randi(sizepop);            
+                ");
+                matlabget(ind2);
+                index2=ind2;
+            } 
+            for(dd=1:D)
+            {
+                pop(index,d)=round(gbest(dd)+F*(pbest(index1,dd)-pbest(index2,dd)));
+                if(pop(index,dd)<popmin(dd))
+                {
+                    pop(index,dd)=popmin(dd);
+                }
+                if(pop(index,dd)>popmax(dd))
+                {
+                    pop(index,dd)=popmax(dd);
+                }
+            }
+            #更新fitness
+            del('d.txt');
+            d=[pop(index,1:D),pop(index,D-1:-1:1)];
+            d=[d,d];    
+            write('d.txt',num2str(d));
+            switchtolayout;    
+            select('structure group');    
+            runsetup;
+            select('mesh');
+            set('x min',-(sum(d)*1e-9));
+            run;
+            temp=getresult('transmission','T');
+            trans_result(index,:)=-pinch(temp.T);
+            fitness(1,index)=sum(abs(tar-trans_result(index,1:201)),2);
+            if(fitness(1,index)<fitnesspbest(1,index))
+            {
+                fitnesspbest(index)=fitness(index);
+                pbest(index,:)=pop(index,:);
+            }
+            if(fitnesspbest(index)<fitnessgbest)
+            {
+                fitnessgbest=fitnesspbest(index);
+                gbest=pbest(index,:);
+                is_des=1;
+                T=0;
+            }  
+        }
+    }
+    result(ii)=fitnessgbest;
+    matlabsave('pso-result'+num2str(ii),pbest,gbest,v,fitnessgbest,ii,fitnesspbest,trans_result,pop,result);
+}
+matlabsave('result',result,gbest);

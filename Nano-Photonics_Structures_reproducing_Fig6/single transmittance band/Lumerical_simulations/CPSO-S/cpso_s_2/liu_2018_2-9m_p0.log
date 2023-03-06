@@ -1,0 +1,88 @@
+FDTD Solutions Version 8.19.1584 (Windows 64bit)
+ expires (month/day/year): 12/31/2025
+using config file: C:/Users/wzp/AppData/Roaming/Lumerical/FDTD Solutions.ini
+license host: <a href=http://localhost:8095>localhost:8095</a>
+current time: Thu Jan 19 07:44:11 2023
+Running on host: weizp
+All processes are communicating and ready to proceed to simulation...
+Running fsp file: F:\lumerical\fdtd\bin\fdtd-engine-msmpi.exe -t 1 -remote F:/NMI_review/cpso-s/cpso_s_2/liu_2018_2-9m.fsp
+number of processors is 1
+processors are distributed as: 1x1x1
+Running 2D Simulation
+Starting meshing
+Simulation size in gridpoints: 3066 x 3 x 1
+Refined 0 mesh cells (0%)
+Completed meshing!
+Meshing complete in 0 seconds of CPU time
+Starting meshing
+Simulation size in gridpoints: 3066 x 3 x 1
+Refined 0 mesh cells (0%)
+Completed meshing!
+Meshing complete in 0 seconds of CPU time
+Starting meshing
+Simulation size in gridpoints: 3066 x 3 x 1
+Refined 0 mesh cells (0%)
+Completed meshing!
+Meshing complete in 0.015625 seconds of CPU time
+0 0
+0 0
+finished material properties
+Selected kernel with optimization level: 2 and split-field propagation direction: 0
+Starting meshing
+Simulation size in gridpoints: 3066 x 3 x 1
+Refined 0 mesh cells (0%)
+Completed meshing!
+Meshing complete in 0 seconds of CPU time
+Starting meshing
+Simulation size in gridpoints: 3066 x 3 x 1
+Refined 0 mesh cells (0%)
+Completed meshing!
+Meshing complete in 0 seconds of CPU time
+Starting meshing
+Simulation size in gridpoints: 3066 x 3 x 1
+Refined 0 mesh cells (0%)
+Completed meshing!
+Meshing complete in 0 seconds of CPU time
+0 0
+Selected kernel with optimization level: 2 and split-field propagation direction: 0
+-----------------------------------------
+Beginning initialization of 2D FDTD Simulation
+  Including TE Simulation
+Starting to add sources to simulation
+
+Adding Gaussian source propagating in X
+Starting to add boundary conditions to simulation
+Adding PML BC
+Adding PML BC
+Adding periodic BC
+Adding periodic BC
+Starting to add monitors to Simulation
+Adding analysis monitor
+Adding frequency monitor
+Finished initialization of 2D Simulation
+-----------------------------------------
+All processes are communicating and ready to proceed to simulation...
+Starting 50785 total iterations
+0% complete. Max time remaining: 3 secs. Auto Shutoff: 1
+2% complete. Max time remaining: 3 secs. Auto Shutoff: 1
+4% complete. Max time remaining: 3 secs. Auto Shutoff: 1
+8% complete. Max time remaining: 3 secs. Auto Shutoff: 1
+16% complete. Max time remaining: 3 secs. Auto Shutoff: 0.0552914
+32% complete. Max time remaining: 3 secs. Auto Shutoff: 5.20491e-005
+40% complete. Max time remaining: 2 secs. Auto Shutoff: 1.9775e-005
+100% complete. Max time remaining: 0 mins, 0 secs. Auto Shutoff: 1.9775e-005
+Early termination of simulation, the autoshutoff criteria are satisfied.
+Completed 20251 iterations, or 5.981443e-014s of Simulation Time
+Process 0 starting to collect data
+    collecting TM monitor data
+    collecting TE monitor data
+    collecting TM source data
+    collecting TE source data
+Finished collecting data
+Simulation completed successfully at: Thu Jan 19 07:44:13 2023
+Overall wall time measurements in seconds:
+    time to mesh and initialize: 0
+    time to run FDTD simulation: 2
+    time to finalize data and save to files: 0
+    FDTD solver speed: 93.1343 Mnodes/s
+    total FDTD solver speed on 1 processes: 93.1343 Mnodes/s

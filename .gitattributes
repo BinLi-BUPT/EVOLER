@@ -1,0 +1,12 @@
+Power_Grid_Distpacth_reproducing_Fig5 filter=lfs diff=lfs merge=lfs -text
+Sourced_Data_Fig_2.xlsx filter=lfs diff=lfs merge=lfs -text
+Sourced_Data_Fig_3.xlsx filter=lfs diff=lfs merge=lfs -text
+Sourced_Data_Fig_6.xlsx filter=lfs diff=lfs merge=lfs -text
+Time_Complexity_reproducing_Fig4 filter=lfs diff=lfs merge=lfs -text
+tensor_toolbox.zip filter=lfs diff=lfs merge=lfs -text
+Demo_reproducing_Fig2 filter=lfs diff=lfs merge=lfs -text
+Nano-Photonics_Structures_reproducing_Fig6 filter=lfs diff=lfs merge=lfs -text
+Read_me.docx filter=lfs diff=lfs merge=lfs -text
+Sourced_Data_Fig_4.xlsx filter=lfs diff=lfs merge=lfs -text
+Sourced_Data_Fig_5.xlsx filter=lfs diff=lfs merge=lfs -text
+Test_Function_reproducing_Fig3 filter=lfs diff=lfs merge=lfs -text
