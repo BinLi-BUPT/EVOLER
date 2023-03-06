@@ -1,0 +1,114 @@
+#NPSO
+gen=200;             #The number of iterations.
+sizepop=50;         #The number of particles in the swarm.
+c1=2;         
+c2=2;
+tar=readdata('data_double_peak.txt'); 
+popcen=[80,80,80,80,80];
+popmin=[15,15,15,15,15];         
+popmax=[150,150,150,150,150]; 
+M=5;                   
+Vmax=0.2*(150-15); 		  		
+Vmin=-1*Vmax;
+result=matrix(1,gen);
+V=matrix(sizepop,M);
+trans_result=matrix(sizepop,201);
+pop=matrix(sizepop,M);
+for(ii=1:sizepop){
+    pop(ii,:)=pop(ii,:)=round(popmin+(popmax-popmin)*randmatrix(1,M));	#Initialize the position of particles.
+    V(ii,:)=Vmax*(1-2*randmatrix(1,M));			#Initialize the velocity of particles.
+}
+fitness=matrix(1,sizepop);
+for(ii=1:sizepop){
+    ?ii;
+    del('d.txt');
+    d=[pop(ii,1:M),pop(ii,M-1:-1:1)];
+    d=[d,d];    
+    write('d.txt',num2str(d));
+    switchtolayout;    
+    select('structure group');    
+    runsetup;
+    select('mesh');
+    set('x min',-(sum(d)*1e-9));
+    run;
+    temp=getresult('transmission','T');
+    trans_result(ii,:)=-pinch(temp.T);
+    fitness(1,ii)=sum(abs(tar-trans_result(ii,1:201)),2);
+}
+matlabput(fitness);
+matlab("
+    [bestf,besti]=min(fitness);
+    [~, bestindex2]=max(fitness);
+");
+matlabget(bestf,besti,bestindex2);
+pbest=pop;
+gbest=pop(besti,:);
+fitnesspbest=fitness;
+fitnessgbest=bestf;
+
+g_id = pop(bestindex2,:);
+fitnessgworst = fitness(bestindex2);
+fitnesspworst = fitness;
+
+p_id = pop;
+for(ii=1:gen){
+    for(jj=1:sizepop){
+        ?ii;
+        ?jj;
+        V(jj,:)= V(jj,:) + c1*rand*(pop(jj,:)-p_id(jj,:))+c2*rand*(pop(jj,:)-g_id);
+    	#Update the velocity.  
+        for(kk=1:M){        
+            if(V(jj,kk)>Vmax){
+                V(jj,kk)=Vmax;
+            }
+            if(V(jj,kk)<Vmin){
+                V(jj,kk)=Vmin;
+            }
+        }
+        pop(jj,:)=round(pop(jj,:)+V(jj,:));	#Update the position of particles.
+        for(kk=1:M){
+            if(pop(jj,kk)>popmax(kk)){
+                pop(jj,kk)=popmax(kk);
+            }
+            if(pop(jj,kk)<popmin(kk)){
+                pop(jj,kk)=popmin(kk);
+            }
+        }
+        del('d.txt');
+        d=[pop(jj,1:M),pop(jj,M-1:-1:1)];   
+        d=[d,d]; 
+        write('d.txt',num2str(d));
+        switchtolayout;    
+        select('structure group');    
+        runsetup;
+        select('mesh');
+        set('x min',-(sum(d)*1e-9));
+        run;
+        temp=getresult('transmission','T');
+        trans_result(jj,:)=-pinch(temp.T);
+        fitness(1,jj)=sum(abs(tar-trans_result(jj,1:201)),2);
+        
+        if(fitness(jj)<fitnesspbest(jj)){
+            pbest(jj,:)=pop(jj,:);
+            fitnesspbest(jj)=fitness(jj);
+        }
+        if(fitness(jj)<fitnessgbest){
+            gbest= pop(jj,:);
+            fitnessgbest= fitness(jj);
+        }
+
+       if (fitness(jj) > fitnesspworst(jj)){
+           p_id(jj,:) = pop(jj,:);
+           fitnesspworst(jj)=fitness(jj);
+       }
+        
+       if (fitness(jj) > fitnessgworst){
+           g_id =  pop(jj,:);
+           fitnessgworst = fitness(jj);
+           }
+    }
+    result(ii)=fitnessgbest;		
+    matlabsave('pso-result'+num2str(ii),pbest,p_id,gbest,g_id,V,fitnessgbest,fitnessgworst,ii,fitnesspbest,fitnesspworst,trans_result,pop,fitness,result);
+}
+matlabsave('result',result,gbest);
+    

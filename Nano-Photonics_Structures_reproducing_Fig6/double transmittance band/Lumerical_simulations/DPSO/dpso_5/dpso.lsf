@@ -1,0 +1,121 @@
+#dpso-1
+#7层镜像结构的pso优化
+gen=200;             #迭代次数
+sizepop=50;         #种群规模
+
+tar=readdata('data_double_peak.txt'); #目标函数值
+popcen=[80,80,80,80,80];
+popmin=[15,15,15,15,15];         
+popmax=[150,150,150,150,150]; 
+vmax=0.2*(popmax-popmin);
+vmin=-1*vmax;
+M=5;
+c1=2;
+c2=2;
+cv=0;
+cL=0.001;
+w=0.4;
+result=matrix(1,gen);
+V=matrix(sizepop,M);
+trans_result=matrix(sizepop,201);
+pop=matrix(sizepop,M);
+#初始化
+for(ii=1:sizepop)
+{
+    pop(ii,:)=popcen+round(70*(1-2*randmatrix(1,M)));	#种群初始化
+    V(ii,:)=vmax*(1-2*randmatrix(1,M));			#速度初始化
+}
+fitness=matrix(1,sizepop);
+for(ii=1:sizepop)
+{
+    ?ii;
+    del('d.txt');
+    d=[pop(ii,1:M),pop(ii,M-1:-1:1)];
+    d=[d,d];    
+    write('d.txt',num2str(d));
+    switchtolayout;    
+    select('structure group');    
+    runsetup;
+    select('mesh');
+    set('x min',-(sum(d)*1e-9));
+    run;
+    temp=getresult('transmission','T');
+    trans_result(ii,:)=-pinch(temp.T);
+    fitness(1,ii)=sum(abs(tar-trans_result(ii,1:201)),2);
+}
+matlabput(fitness);
+matlab("
+    [bestf,besti]=min(fitness);
+");
+matlabget(bestf,besti);
+pbest=pop;
+gbest=pop(besti,:);
+fitnesspbest=fitness;
+fitnessgbest=bestf;
+for(ii=1:gen)
+{
+    for(jj=1:sizepop)
+    {
+        ?ii;
+        ?jj;
+        V(jj,:)=w*V(jj,:)+c1*rand*(pbest(jj,:)-pop(jj,:))+c2*rand*(gbest-pop(jj,:));
+        for(dd=1:M)
+        {
+            if(V(jj,dd)>vmax(dd))
+            {
+                V(jj,dd)=vmax(dd);
+            }
+            if(V(jj,dd)<vmin(dd))
+            {
+                V(jj,dd)=vmin(dd);
+            }
+            if (rand<cv)
+            {
+                V(jj,dd)=vmin(dd)+rand*(vmax(dd)-vmin(dd));
+            }
+        }
+        pop(jj,:)=round(pop(jj,:)+V(jj,:));
+        for(dd=1:M)
+        {
+            if(pop(jj,dd)>popmax(dd))
+            {
+                pop(jj,dd)=popmax(dd);
+            }
+            if(pop(jj,dd)<popmin(dd))
+            {
+                pop(jj,dd)=popmin(dd);
+            }
+            if (rand<cL)
+            {
+                pop(jj,dd)=popmin(dd)+round(rand*(popmax(dd)-popmin(dd)));
+            }
+        }
+        del('d.txt');
+        d=[pop(jj,1:M),pop(jj,M-1:-1:1)];   
+        d=[d,d]; 
+        write('d.txt',num2str(d));
+        switchtolayout;    
+        select('structure group');    
+        runsetup;
+        select('mesh');
+        set('x min',-(sum(d)*1e-9));
+        run;
+        temp=getresult('transmission','T');
+        trans_result(jj,:)=-pinch(temp.T);
+        fitness(1,jj)=sum(abs(tar-trans_result(jj,1:201)),2);
+        if(fitness(jj)<fitnesspbest(jj))
+        {
+            pbest(jj,:)=pop(jj,:);
+            fitnesspbest(jj)=fitness(jj);
+        }
+        if(fitness(jj)<fitnessgbest)
+        {
+            gbest=pop(jj,:);
+            fitnessgbest=fitness(jj);
+        }
+    }
+    result(ii)=fitnessgbest;		#保存每一代最佳
+    matlabsave('pso-result'+num2str(ii),pbest,gbest,V,fitnessgbest,ii,fitnesspbest,trans_result,pop,result);
+}
+matlabsave('result',result,gbest);
+

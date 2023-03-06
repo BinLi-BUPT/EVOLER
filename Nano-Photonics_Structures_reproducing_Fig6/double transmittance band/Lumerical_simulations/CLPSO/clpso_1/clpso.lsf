@@ -1,0 +1,241 @@
+#clpso-1
+maxGen=200;             #the number of iterations
+ps=50;         #the number of particles in the swarm
+popCen=[80,80,80,80,80];
+popMin=[15,15,15,15,15];         
+popMax=[150,150,150,150,150]; 
+vMax=0.2*(popMax-popMin);
+vMin=-1*vMax;
+c1=1.49445;
+w=0.9;
+dw=(0.9-0.4)/maxGen;
+maxFlag=7;
+tar=readdata('data_double_peak.txt');
+D=5;
+
+result=matrix(1,maxGen);
+V=matrix(ps,D);
+trans_result=matrix(ps,201);
+pop=matrix(ps,D);
+fitness=matrix(1,ps);
+p=matrix(1,ps);
+#initialization of the swarm
+for (ii=1:ps)
+{
+    pop(ii,:)=popCen+round(70*(1-2*randmatrix(1,D)));	#initialize the position of particles
+    V(ii,:)=vMax*(1-2*randmatrix(1,D));	#initialize the velocity of the particles	
+}
+for(ii=1:ps)
+{
+    ?ii;
+    del('d.txt');
+    d=[pop(ii,1:D),pop(ii,D-1:-1:1)];
+    d=[d,d];    
+    write('d.txt',num2str(d));
+    switchtolayout;    
+    select('structure group');    
+    runsetup;
+    select('mesh');
+    set('x min',-(sum(d)*1e-9));
+    run;
+    temp=getresult('transmission','T');
+    trans_result(ii,:)=-pinch(temp.T);
+    fitness(1,ii)=sum(abs(tar-trans_result(ii,1:201)),2);
+}
+matlabput(fitness);
+matlab("
+    [bestf,besti]=min(fitness);
+");
+matlabget(bestf,besti);
+pbest=pop;
+gbest=pop(besti,:);
+fitnesspbest=fitness;
+fitnessgbest=bestf;
+for(ii=1:ps)
+{
+     p(ii)=0.05+0.45*(exp(10*(ii-1)/(ps-1))-1)/(exp(10)-1);   
+}
+## initialize the learning target
+target=matrix(ps,D);
+f=matrix(1,D);
+fi=matrix(1,D);
+fi1=matrix(1,D);
+fi2=matrix(1,D);
+fii=matrix(1,D);
+flag=matrix(1,ps);
+for (ii=1:ps)
+{
+    for(dd=1:D)
+    {
+        f(1,dd)=ii;
+    }
+    matlabput(ps,D);
+    matlab("
+    fi0=ceil(ps.*rand(1,D));
+    ");
+    matlabget(fi0);
+    fi1=fi0;
+     matlabput(ps,D);
+    matlab("
+    fi0=ceil(ps.*rand(1,D));
+    ");
+    matlabget(fi0);
+    fi2=fi0;
+    for(dd=1:D)
+    {
+        if (fitnesspbest(fi1(dd))<fitnesspbest(fi2(dd)))
+        {
+            fi(dd)=fi1(dd);
+        }
+        else
+        {
+            fi(dd)=fi2(dd);            
+        }
+    }
+    for(dd=1:D)
+    {
+        matlab("p_tmp=rand;
+        ") ;
+        matlabget(p_tmp);
+        rand_p=p_tmp;
+        if(rand_p<p(ii))
+        {
+            f(dd)=fi(dd);    
+        }       
+    }
+    for(dd=1:D)
+    {
+        fii(dd)=ii;        
+    }
+    if(f==fii)
+    {
+          matlabput(D);
+          matlab("randD=ceil(D*rand);
+          ");
+          matlabget(randD);
+          f(randD)=fi(randD);
+    }
+    target(ii,:)=f(1,:);
+    flag(ii)=0;
+}
+
+#main loop
+for(kk=1:maxGen)
+{
+    for(ii=1:ps)
+    {
+        if(flag(ii)==maxFlag) # update the learning target
+        {
+            for(dd=1:D)
+            {
+                f(1,dd)=ii;
+            }
+            matlabput(ps,D);
+            matlab("
+            fi0=ceil(ps.*rand(1,D));
+            ");
+            matlabget(fi0);	
+            fi1=fi0;
+            matlabput(ps,D);
+            matlab("
+            fi0=ceil(ps.*rand(1,D));
+            ");
+            matlabget(fi0);
+            fi2=fi0;
+            for(dd=1:D)
+            {
+                if (fitnesspbest(fi1(dd))<fitnesspbest(fi2(dd)))
+                {
+                    fi(dd)=fi1(dd);
+                }
+                else
+                {
+                    fi(dd)=fi2(dd);            	
+                }
+            }
+            for(dd=1:D)
+            {
+                matlab("p_tmp=rand;	
+                ") ;
+                matlabget(p_tmp);
+                rand_p=p_tmp;
+                if(rand_p<p(ii))
+                {
+                    f(dd)=fi(dd);    
+                }       
+            }
+            for(dd=1:D)
+            {
+                fii(dd)=ii;        
+            }
+            if(f==fii)
+            {
+                matlabput(D);
+                matlab("randD=ceil(D*rand);
+                ");
+                matlabget(randD);
+                f(randD)=fi(randD);
+            }
+            target(ii,:)=f(1,:);
+            flag(ii)=0;
+        }  
+        for(dd=1:D) # update the position and the velocity
+        {
+            index=target(ii,dd);
+            V(ii,dd)=w*V(ii,dd)+c1*rand*(pbest(index,dd)-pop(ii,dd));
+            if(V(ii,dd)>vMax(dd))
+            {
+                V(ii,dd)=vMax(dd);
+            }
+            if (V(ii,dd)<vMin(dd))
+            {
+                V(ii,dd)=vMin(dd);
+            }
+            pop(ii,dd)=round(pop(ii,dd)+V(ii,dd));
+            if(pop(ii,dd)>popMax)
+            {
+                pop(ii,dd)=popMax(dd);
+            }
+            if(pop(ii,dd)<popMin(dd))
+            {
+                pop(ii,dd)=popMin(dd);
+            }
+        } 
+        del('d.txt');
+        d=[pop(ii,1:D),pop(ii,D-1:-1:1)];   
+        d=[d,d]; 
+        write('d.txt',num2str(d));
+        switchtolayout;    
+        select('structure group');    
+        runsetup;
+        select('mesh');
+        set('x min',-(sum(d)*1e-9));
+        run;
+        temp=getresult('transmission','T');
+        trans_result(ii,:)=-pinch(temp.T);
+        fitness(1,ii)=sum(abs(tar-trans_result(ii,1:201)),2);
+        if(fitness(ii)<fitnesspbest(ii))
+        {
+            pbest(ii,:)=pop(ii,:);
+            fitnesspbest(ii)=fitness(ii);
+            flag(ii)=0;
+        }
+        else
+        {
+            flag(ii)=flag(ii)+1;
+        }
+        if(fitness(ii)<fitnessgbest)
+        {
+            gbest=pop(ii,:);
+            fitnessgbest=fitness(ii);
+        }
+        
+    }  
+    result(kk)=fitnessgbest;  
+    matlabsave('pso-result'+num2str(kk),pbest,gbest,V,fitnessgbest,kk,fitnesspbest,trans_result,pop,result,flag,w,f);
+    w=w-dw;
+}
+matlabsave('result',result,gbest);
+
+
+
